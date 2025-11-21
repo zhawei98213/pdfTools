@@ -24,7 +24,7 @@
 - `PhotoToPDFPanel`
   - 负责 UI 控件、文件选择和输入验证。
   - 提供 `convert_requested` 信号 (list[str], str, bool)；第三个布尔值表示是否开启统一尺寸。
-  - 复用了与合并面板类似的列表操作体验，并新增“统一尺寸生成 PDF”按钮。
+  - 复用了与合并面板类似的列表操作体验，支持添加/移除/清空以及上移、下移调序，并新增“统一尺寸生成 PDF”按钮。
 - `MainWindow`
   - 新增 Tab 以及 `_handle_photo_convert`。
   - 与 `TaskRunner` 集成，处理成功/失败反馈。

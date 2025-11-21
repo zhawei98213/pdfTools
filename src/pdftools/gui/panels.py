@@ -293,6 +293,14 @@ class PhotoToPDFPanel(QWidget):
         remove_button.clicked.connect(self.remove_selected)
         controls.addWidget(remove_button)
 
+        move_up = QPushButton("上移")
+        move_up.clicked.connect(self.move_selected_up)
+        controls.addWidget(move_up)
+
+        move_down = QPushButton("下移")
+        move_down.clicked.connect(self.move_selected_down)
+        controls.addWidget(move_down)
+
         clear_button = QPushButton("清空列表")
         clear_button.clicked.connect(self.clear_list)
         controls.addWidget(clear_button)
@@ -337,6 +345,38 @@ class PhotoToPDFPanel(QWidget):
             row = self.photo_list.row(item)
             self.photo_list.takeItem(row)
         self.status_message.emit("已移除选中的图片。")
+
+    def move_selected_up(self) -> None:
+        items = self.photo_list.selectedItems()
+        if not items:
+            return
+        moved = False
+        for item in sorted(items, key=self.photo_list.row):
+            row = self.photo_list.row(item)
+            if row == 0:
+                continue
+            self.photo_list.takeItem(row)
+            self.photo_list.insertItem(row - 1, item)
+            item.setSelected(True)
+            moved = True
+        if moved:
+            self.status_message.emit("已上移选中的图片。")
+
+    def move_selected_down(self) -> None:
+        items = self.photo_list.selectedItems()
+        if not items:
+            return
+        moved = False
+        for item in sorted(items, key=self.photo_list.row, reverse=True):
+            row = self.photo_list.row(item)
+            if row == self.photo_list.count() - 1:
+                continue
+            self.photo_list.takeItem(row)
+            self.photo_list.insertItem(row + 1, item)
+            item.setSelected(True)
+            moved = True
+        if moved:
+            self.status_message.emit("已下移选中的图片。")
 
     def clear_list(self) -> None:
         self.photo_list.clear()
