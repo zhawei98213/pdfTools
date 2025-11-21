@@ -1,3 +1,0 @@
-[console_scripts]
-pdftools-gui = pdftools.gui.main:main
-pdftools-server = pdftools.server.app:run
