@@ -255,7 +255,7 @@ class SplitPanel(QWidget):
 
 
 class PhotoToPDFPanel(QWidget):
-    convert_requested = Signal(list, str, bool, bool)
+    convert_requested = Signal(list, str, bool)
     status_message = Signal(str)
 
     SUPPORTED_EXTENSIONS = "*.png *.jpg *.jpeg *.bmp *.tiff *.webp"
@@ -321,16 +321,12 @@ class PhotoToPDFPanel(QWidget):
 
         self.convert_button = QPushButton("生成 PDF")
         self.convert_button.setProperty("class", "primary")
-        self.convert_button.clicked.connect(lambda: self.emit_convert(False, False))
+        self.convert_button.clicked.connect(lambda: self.emit_convert(False))
         layout.addWidget(self.convert_button)
 
         self.uniform_button = QPushButton("统一尺寸生成 PDF")
-        self.uniform_button.clicked.connect(lambda: self.emit_convert(True, False))
+        self.uniform_button.clicked.connect(lambda: self.emit_convert(True))
         layout.addWidget(self.uniform_button)
-
-        self.clean_button = QPushButton("清理手写并生成 PDF")
-        self.clean_button.clicked.connect(lambda: self.emit_convert(False, True))
-        layout.addWidget(self.clean_button)
 
     def add_images(self) -> None:
         files, _ = QFileDialog.getOpenFileNames(
@@ -398,7 +394,7 @@ class PhotoToPDFPanel(QWidget):
                 target = f"{target}.pdf"
             self.output_path.setText(target)
 
-    def emit_convert(self, normalize: bool, clean_handwriting: bool) -> None:
+    def emit_convert(self, normalize: bool) -> None:
         files = [self.photo_list.item(index).text() for index in range(self.photo_list.count())]
         output = self.output_path.text().strip()
         if not files:
@@ -407,9 +403,8 @@ class PhotoToPDFPanel(QWidget):
         if not output:
             QMessageBox.warning(self, "缺少输出路径", "请选择 PDF 输出位置。")
             return
-        self.convert_requested.emit(files, output, normalize, clean_handwriting)
+        self.convert_requested.emit(files, output, normalize)
 
     def set_running(self, running: bool) -> None:
         self.convert_button.setDisabled(running)
         self.uniform_button.setDisabled(running)
-        self.clean_button.setDisabled(running)

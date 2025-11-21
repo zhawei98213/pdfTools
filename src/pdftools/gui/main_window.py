@@ -65,9 +65,7 @@ class MainWindow(QMainWindow):
             on_failed=lambda error: self._task_failed(error, self.split_panel),
         )
 
-    def _handle_photo_convert(
-        self, images: list[str], output: str, normalize: bool, clean_handwriting: bool
-    ) -> None:
+    def _handle_photo_convert(self, images: list[str], output: str, normalize: bool) -> None:
         self.photo_panel.set_running(True)
         self.status_bar.showMessage("正在生成 PDF…")
         self.runner.run(
@@ -75,7 +73,6 @@ class MainWindow(QMainWindow):
             images,
             output,
             normalize_sizes=normalize,
-            clean_handwriting=clean_handwriting,
             on_finished=lambda path: self._photo_convert_finished(path),
             on_failed=lambda error: self._task_failed(error, self.photo_panel),
         )
