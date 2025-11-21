@@ -20,7 +20,7 @@ To start the desktop app without remembering the full command chain, run `bash s
 ## Core Features
 - Merge multiple PDFs into one ordered document.
 - Split a PDF into custom page ranges using expressions like `1-3,5`.
-- Convert common image formats (PNG/JPG/BMP/WebP/TIFF) into a single multi-page PDF via the “照片转 PDF” tab.
+- Convert common image formats (PNG/JPG/BMP/WebP/TIFF) into a single multi-page PDF via the “照片转 PDF” tab, with an optional “统一尺寸生成 PDF”按钮 to normalize page sizes.
 - See `docs/photo_to_pdf_design.md` for the detailed design and execution plan behind the photo workflow.
 
 ## Coding Style & Naming Conventions

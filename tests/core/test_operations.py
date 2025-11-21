@@ -34,3 +34,20 @@ def test_convert_images_to_pdf__requires_images(tmp_path) -> None:
     output = tmp_path / "photos.pdf"
     with pytest.raises(ValueError):
         convert_images_to_pdf([], output)
+
+
+def test_convert_images_to_pdf__normalizes_page_size_when_requested(tmp_path) -> None:
+    wide = tmp_path / "wide.png"
+    tall = tmp_path / "tall.png"
+    Image.new("RGB", (200, 100), (0, 0, 255)).save(wide)
+    Image.new("RGB", (100, 200), (255, 255, 0)).save(tall)
+
+    output = tmp_path / "normalized.pdf"
+    convert_images_to_pdf([wide, tall], output, normalize_sizes=True)
+
+    reader = PdfReader(output)
+    assert len(reader.pages) == 2
+    first_box = reader.pages[0].mediabox
+    second_box = reader.pages[1].mediabox
+    assert first_box.width == second_box.width
+    assert first_box.height == second_box.height

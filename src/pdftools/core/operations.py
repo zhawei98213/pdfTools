@@ -76,10 +76,18 @@ def split_pdf(source: str | Path, ranges_expr: str, output_dir: str | Path) -> l
     return exported
 
 
-def convert_images_to_pdf(images: Sequence[str | Path], output_path: str | Path) -> Path:
-    """Convert one or more images into a single multi-page PDF.
+def convert_images_to_pdf(
+    images: Sequence[str | Path],
+    output_path: str | Path,
+    *,
+    normalize_sizes: bool = False,
+) -> Path:
+    """Convert images into a multi-page PDF, optionally normalizing page size.
 
-    The order of ``images`` controls their page order inside the PDF.
+    Args:
+        images: Ordered sequence of paths to supported image files.
+        output_path: Destination PDF path.
+        normalize_sizes: When True, resize every page to match the first image's dimensions.
     """
 
     image_paths = normalize_paths(images)
@@ -87,9 +95,14 @@ def convert_images_to_pdf(images: Sequence[str | Path], output_path: str | Path)
         raise ValueError("至少需要选择一张图片。")
 
     prepared: list[Image.Image] = []
+    reference_size: tuple[int, int] | None = None
     for image_path in image_paths:
         with Image.open(image_path) as img:
-            prepared.append(_prepare_for_pdf(img))
+            processed = _prepare_for_pdf(img)
+            if normalize_sizes:
+                reference_size = reference_size or processed.size
+                processed = _resize_to_reference(processed, reference_size)
+            prepared.append(processed)
 
     destination = Path(output_path).expanduser().resolve()
     destination.parent.mkdir(parents=True, exist_ok=True)
@@ -117,3 +130,11 @@ def _prepare_for_pdf(image: Image.Image) -> Image.Image:
         return image.convert("RGB")
 
     return image.copy()
+
+
+def _resize_to_reference(image: Image.Image, size: tuple[int, int]) -> Image.Image:
+    """Resize ``image`` to ``size`` using high-quality resampling."""
+
+    if image.size == size:
+        return image
+    return image.resize(size, Image.Resampling.LANCZOS)
