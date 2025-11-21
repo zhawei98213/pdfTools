@@ -3,10 +3,10 @@ from __future__ import annotations
 from pathlib import Path
 
 import pytest
-from PIL import Image
+from PIL import Image, ImageDraw
 from pypdf import PdfReader
 
-from pdftools.core.operations import convert_images_to_pdf
+from pdftools.core.operations import convert_images_to_pdf, remove_handwriting_marks
 
 
 def create_sample_image(path: Path, color: tuple[int, int, int]) -> None:
@@ -51,3 +51,16 @@ def test_convert_images_to_pdf__normalizes_page_size_when_requested(tmp_path) ->
     second_box = reader.pages[1].mediabox
     assert first_box.width == second_box.width
     assert first_box.height == second_box.height
+
+
+def test_remove_handwriting_marks__lightens_dark_pixels() -> None:
+    image = Image.new("RGB", (100, 100), (255, 255, 255))
+    draw = ImageDraw.Draw(image)
+    draw.rectangle((10, 40, 90, 60), fill=(10, 10, 10))
+
+    cleaned = remove_handwriting_marks(image)
+    center_pixel = cleaned.getpixel((50, 50))
+
+    assert center_pixel[0] > 200
+    assert center_pixel[1] > 200
+    assert center_pixel[2] > 200

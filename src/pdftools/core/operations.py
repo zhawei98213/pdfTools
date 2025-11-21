@@ -5,7 +5,7 @@ from pathlib import Path
 from typing import Iterable, Sequence
 
 from pypdf import PdfReader, PdfWriter
-from PIL import Image
+from PIL import Image, ImageFilter, ImageStat
 
 from .ranges import parse_page_ranges
 
@@ -81,6 +81,7 @@ def convert_images_to_pdf(
     output_path: str | Path,
     *,
     normalize_sizes: bool = False,
+    clean_handwriting: bool = False,
 ) -> Path:
     """Convert images into a multi-page PDF, optionally normalizing page size.
 
@@ -99,6 +100,8 @@ def convert_images_to_pdf(
     for image_path in image_paths:
         with Image.open(image_path) as img:
             processed = _prepare_for_pdf(img)
+            if clean_handwriting:
+                processed = remove_handwriting_marks(processed)
             if normalize_sizes:
                 reference_size = reference_size or processed.size
                 processed = _resize_to_reference(processed, reference_size)
@@ -130,6 +133,25 @@ def _prepare_for_pdf(image: Image.Image) -> Image.Image:
         return image.convert("RGB")
 
     return image.copy()
+
+
+def remove_handwriting_marks(image: Image.Image) -> Image.Image:
+    """Lighten darker handwriting strokes to reveal the underlying document."""
+
+    rgb = image.convert("RGB")
+    grayscale = rgb.convert("L")
+    blurred = grayscale.filter(ImageFilter.GaussianBlur(1.2))
+    stats = ImageStat.Stat(blurred)
+    mean_value = stats.mean[0]
+    threshold = min(245, int(mean_value * 0.92))
+
+    def _mask(value: int) -> int:
+        return 0 if value < threshold else 255
+
+    mask = blurred.point(_mask)
+    white_background = Image.new("RGB", rgb.size, (255, 255, 255))
+    cleaned = Image.composite(rgb, white_background, mask)
+    return cleaned
 
 
 def _resize_to_reference(image: Image.Image, size: tuple[int, int]) -> Image.Image:
